@@ -1,14 +1,14 @@
 from flask import Flask, request
 import requests
 
-from unipython.config import token
+from unipython.config import token, url
 from unipython.interpreter import exec_
 
 app = Flask(__name__)
 
 
 
-@app.route("/")
+@app.route(f"/{token}", methods=["GET", "POST"])
 def get_update():
     if request.method == "POST":
         response = request.get_json()
@@ -41,7 +41,7 @@ def get_update():
 @app.route("/setwebhook/")
 def webhook():
     payload = {
-        "url": f"https://riversrun.herokuapp.com/{token}"
+        "url": f"{url}/{token}"
     }
     headers = {
         "Accept": "application/json",

@@ -2,4 +2,7 @@
 '''
 
 # SECRET TOKEN
-token = "5703765206:AAGAgX6rdLFIBR-eThC4Ym00sfbOxyk6ivA"
+token = "<token goes here>"
+
+# host url
+url = "<url goes here>"
