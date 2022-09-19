@@ -6,6 +6,9 @@ from contextlib import redirect_stdout
 from io import StringIO
 import re
 
+from unipython.loader import check_forbidden
+
+
 def exec_(text):
     '''Exec function that calls python exec(...)
     '''
@@ -34,30 +37,3 @@ def exec_(text):
         output += f"\n{'=' * 26}"
 
     return output
-
-def check_forbidden(text):
-    """
-    This function searches for forbidden module import.
-    Args:
-        text: code to search
-
-    ---
-    Forbidden modules could affect the server hosting the application.
-    Example os, sys, pathlib ...
-
-    """
-
-    forbidden = re.compile(r"(import|from) (os|sys|pathlib)")
-
-    searches = forbidden.finditer(text)
-    searches = list(searches)
-
-    to_return = []
-
-    if not searches:
-        return to_return
-
-    else:
-        for search in searches:
-            to_return.append(search.group(2))
-        return to_return

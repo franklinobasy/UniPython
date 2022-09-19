@@ -3,6 +3,7 @@ import requests
 
 from unipython.config import token, url
 from unipython.interpreter import exec_
+from unipython.json_to_object import JsonObject
 
 app = Flask(__name__)
 
@@ -11,9 +12,10 @@ app = Flask(__name__)
 @app.route(f"/{token}", methods=["GET", "POST"])
 def get_update():
     if request.method == "POST":
-        response = request.get_json()
-        text = response["message"]["text"]
-        chat_id = response["message"]["chat"]["id"]
+        response = JsonObject(request.get_json())
+        text = response.message.text
+        chat_id = response.message.chat.id
+        user_id  = response.message.from_.id
 
         if text == "/start":
             reply = {
