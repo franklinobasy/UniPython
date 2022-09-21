@@ -11,11 +11,19 @@ app = Flask(__name__)
 
 @app.route(f"/{token}", methods=["GET", "POST"])
 def get_update():
-    if request.method == "POST":
-        response = JsonObject(request.get_json())
-        text = response.message.text
-        chat_id = response.message.chat.id
-        user_id  = response.message.from_.id
+     if request.method == "POST":
+        response = JsonObject(dict(request.get_json()))
+        attr = response.get_attr()
+        if "message" in attr.keys():
+            text = response.message.text
+            chat_id = response.message.chat.id
+            user_id  = response.message.from_.id
+        elif "edited_message" in attr.keys():
+            text = response.edited_message.text
+            chat_id = response.edited_message.chat.id
+            user_id  = response.edited_message.from_.id
+        else:
+            return "unknown"
 
         if text == "/start":
             reply = {
