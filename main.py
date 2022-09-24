@@ -1,29 +1,57 @@
-from flask import Flask, request
+# app
+
+from flask import Flask, request, send_from_directory, send_file, jsonify
+
+import os
+
 import requests
 
-from unipython.config import token, url
+from unipython.config import get_configuration
 from unipython.interpreter import exec_
 from unipython.json_to_object import JsonObject
+from unipython.process_request import get_chat_info, log_user_info
+
+configuration = get_configuration()
 
 app = Flask(__name__)
+app.config["SECRET_KEY"] = configuration.secret_key
+app.config["LOGS"] = "./logs/"
+
+
+token = configuration.token
+host_url = configuration.host_url
+
+
+@app.route("/get-me")
+def get_me():
+
+    headers = {
+        "accept": "application/json",
+        "User-Agent": "Telegram Bot SDK - (https://github.com/irazasyed/telegram-bot-sdk)"
+    }
+
+    response = requests.post(f"https://api.telegram.org/bot{token}/getMe", headers=headers)
+
+    return response.json()
 
 
 
 @app.route(f"/{token}", methods=["GET", "POST"])
 def get_update():
-     if request.method == "POST":
+    if request.method == "POST":
         response = JsonObject(dict(request.get_json()))
         attr = response.get_attr()
         if "message" in attr.keys():
-            text = response.message.text
-            chat_id = response.message.chat.id
-            user_id  = response.message.from_.id
+            chat_info = get_chat_info(response.message)
         elif "edited_message" in attr.keys():
-            text = response.edited_message.text
-            chat_id = response.edited_message.chat.id
-            user_id  = response.edited_message.from_.id
+            chat_info = get_chat_info(response.edited_message)
         else:
             return "unknown"
+
+        log_user_info(chat_info)
+
+        text = chat_info.get("text")    
+        chat_id = chat_info.get("chat_id")
 
         if text == "/start":
             reply = {
@@ -48,10 +76,10 @@ def get_update():
             requests.post(f"https://api.telegram.org/bot{token}/sendMessage", params=reply)
             return "Ok"
 
-@app.route("/setwebhook/")
+@app.route("/setwebhook/", methods=["GET", "POST"])
 def webhook():
     payload = {
-        "url": f"{url}/{token}"
+        "url": f"{host_url}/{token}"
     }
     headers = {
         "Accept": "application/json",
@@ -63,7 +91,21 @@ def webhook():
         return "ok"
     return response['error_code']
 
+@app.route("/download/<users>", methods=["GET", "POST"])
+def download_user(users):
+    try:
+        return send_file(f"{users}.csv", as_attachment=True)
+    except:
+        return "404"
 
+@app.route("/delete/<filename>", methods=["GET", "POST"])
+def delete_file(filename):
+    path = f"{filename}.csv"
+    if os.path.isfile(path):
+        os.remove(path)
+        return jsonify({"result":True})
+
+    return jsonify({"result":False})
 
 if __name__ == "__main__":
     app.run(debug=True)

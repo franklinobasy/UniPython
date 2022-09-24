@@ -32,7 +32,7 @@ def check_forbidden(text):
         return to_return
 
 
-def laod_text(user_id, text):
+def laod_text(chat_id, text):
     '''
     This function loads or creates a special file for a user, using the
     user's chat_id as the name of the file.
@@ -41,13 +41,4 @@ def laod_text(user_id, text):
     file and the whole file is the executed.
 
     '''
-    try:
-        with open(f"{user_id}", "r") as f:
-            code = f.readlines()
-    except FileNotFoundError:
-        code = []
-
-    for line in code:
-        if line.startswith("print"):
-            pass
-    
+    pass
