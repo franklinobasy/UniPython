@@ -9,7 +9,7 @@ import requests
 from unipython.config import get_configuration
 from unipython.interpreter import exec_
 from unipython.json_to_object import JsonObject
-from unipython.process_request import get_chat_info, log_user_info
+from unipython.process_request import get_chat_info, log_user_info, delete_user_log
 
 configuration = get_configuration()
 
@@ -94,15 +94,14 @@ def webhook():
 @app.route("/download/<users>", methods=["GET", "POST"])
 def download_user(users):
     try:
-        return send_file(f"{users}.csv", as_attachment=True)
+        return send_file(f"logs/{users}.csv", as_attachment=True)
     except:
         return "404"
 
 @app.route("/delete/<filename>", methods=["GET", "POST"])
 def delete_file(filename):
-    path = f"{filename}.csv"
-    if os.path.isfile(path):
-        os.remove(path)
+    file = f"{filename}.csv"
+    if delete_user_log(path=f"logs/{file}"):
         return jsonify({"result":True})
 
     return jsonify({"result":False})

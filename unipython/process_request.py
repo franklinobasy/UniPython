@@ -4,12 +4,20 @@ This module helps to extract useful parts from JsonObject
 
 from .json_to_object import JsonObject
 
+import os
+
+
+
 def get_chat_info(message: JsonObject) -> dict:
         message_info = {}
         message_info['text'] = message.text
         message_info['chat_id'] = message.chat.id
         message_info['user_id'] = message.from_.id
-        message_info['username'] = message.from_.username
+        if 'username' in message.from_.get_attr():
+                message_info['username'] = message.from_.username
+        else:
+                message_info['username'] = ""
+
         message_info['first_name'] = message.from_.first_name
 
         return message_info
@@ -24,25 +32,32 @@ def log_user_info(chat_info: dict) -> None:
         write_user_log([user_id, user_name, first_name], user_log)
 
 
-def load_user_log() -> list:
+def load_user_log(path="logs/users.csv") -> list:
         try:
-                with open("users.csv", "r") as f:
+                with open(path, "r") as f:
                         user_log = f.readlines()
         except FileNotFoundError:
-                with open("users.csv", "w") as f:
-                        user_log = ["id", "username", "firstname\n"]
-                        f.write(",".join(user_log))
+                with open(path, "w") as f:
+                        header = ["id", "username", "firstname\n"]
+                        f.write(",".join(header))
+
+                with open(path, "r") as f:
+                        user_log = f.readlines()
         return user_log
 
-def write_user_log(user_info: list, user_log: list):
+def write_user_log(user_info: list, user_log: list, path="logs/users.csv"):
+        user_info = ",".join(user_info)
         if user_info in user_log:
                 pass
         else:
-                user_log.append(user_info)
-                with open("users.csv", "w") as f:
-                        for line in user_log:
-                                line = ",".join(line)
-                                f.write(line)
+                with open(path, "a") as f:
+                        f.write(user_info)
                 print("new user logged!")
 
+def delete_user_log(path="logs/users.csv"):
+        if os.path.isfile(path):
+                with open(path, "w") as f:
+                        f.write("id,username,firstname\n")
+                return True
+        return False
 
